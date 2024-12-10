@@ -30,15 +30,17 @@ jobs:
       - name: Build the Docker image
         run: |
           docker build -t login-app . || (echo "Docker build failed!" && exit 1)
-          docker images  # List all available images to ensure 'login-app' exists
 
-      # Step 5: Tag the Docker image
+      # step 5 Checking the Docker Username    
+      - name: Debug Docker Username
+        run: echo "Docker Username: ${{ secrets.DOCKER_USERNAME }}"
+
+      # Step 6: Tag the Docker image
       - name: Tag the Docker image
         run: |
-          docker tag login-app ${{secrets.DOCKER_USERNAME}}/login-app
-          docker images  # Verify that login-app is tagged correctly
+          docker tag login-app:latest "${{ secrets.DOCKER_USERNAME }}/login-app:latest"
 
-      # Step 6: Push the Docker image to Docker Hub
+      # Step 7: Push the Docker image to Docker Hub
       - name: Push the Docker image to Docker Hub
         run: |
-          docker push ${{secrets.DOCKER_USERNAME}}/login-app
+          docker push "${{ secrets.DOCKER_USERNAME }}/login-app:latest"
