@@ -31,7 +31,7 @@ jobs:
         run: |
           docker build -t login-app . || (echo "Docker build failed!" && exit 1)
 
-      # step 5 Checking the Docker Username    
+      # Step 5: Checking the Docker Username
       - name: Debug Docker Username
         run: echo "Docker Username: ${{ secrets.DOCKER_USERNAME }}"
 
