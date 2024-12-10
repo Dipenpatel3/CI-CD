@@ -35,8 +35,8 @@ jobs:
       # Step 5: Tag the Docker image
       - name: Tag the Docker image
         run: |
-          docker images  # Verify that login-app is built
           docker tag login-app:latest ${{ secrets.DOCKER_USERNAME }}/login-app:latest
+          docker images  # Verify that login-app is tagged correctly
 
       # Step 6: Push the Docker image to Docker Hub
       - name: Push the Docker image to Docker Hub
