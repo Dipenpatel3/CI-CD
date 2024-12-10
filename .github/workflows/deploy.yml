@@ -30,6 +30,7 @@ jobs:
       - name: Build the Docker image
         run: |
           docker build -t login-app .
+          docker images
           docker tag login-app:latest ${{ secrets.DOCKER_USERNAME }}/login-app:latest
 
       # Step 5: Push the Docker image to Docker Hub
