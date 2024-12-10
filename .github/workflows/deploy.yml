@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # Step 4: Build the Docker image
-      - name: Build the Docker image
+      - name: Build the Docker image and checking the images
         run: |
           docker build -t login-app .
           docker images
