@@ -2,9 +2,9 @@ name: Streamlit Login App (Running on the local machine)
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build:
