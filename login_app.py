@@ -5,8 +5,9 @@ def login():
     st.session_state.logged_in = st.session_state.get('logged_in', False)
     
     if not st.session_state.logged_in:
-        username = st.text_input('Username')
-        password = st.text_input('Password', type='password')
+        username = st.text_input('Enter the Username:')
+        password = st.text_input('Enter the password:', type='password')
+        email=st.text_input('Enter the emailID:')
         
         if st.button('Login'):
             if username == 'user' and password == 'password':
