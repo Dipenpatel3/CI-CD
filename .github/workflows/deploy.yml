@@ -32,20 +32,16 @@ jobs:
         run: |
           docker build -t login-app . || (echo "Docker build failed!" && exit 1)
 
-      # Step 5: Tag Docker image with commit hash and timestamp
-      - name: Tag the Docker image
+      # Step 5: Tag Docker image with timestamp
+      - name: Tag the Docker image with timestamp
         run: |
-          IMAGE_TAG="login-app:${GITHUB_SHA}"
-          TIMESTAMP_TAG="login-app:$(date +%Y%m%d%H%M%S)"
-          docker tag login-app:latest $IMAGE_TAG
-          docker tag login-app:latest $TIMESTAMP_TAG
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          docker tag login-app:latest "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
-      # Step 6: Push Docker image to Docker Hub
+      # Step 6: Push Docker image to Docker Hub with timestamp
       - name: Push the Docker image to Docker Hub
         run: |
-          docker push "${{ secrets.DOCKER_USERNAME }}/login-app:latest"
-          docker push "${{ secrets.DOCKER_USERNAME }}/login-app:${GITHUB_SHA}"
-          docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$(date +%Y%m%d%H%M%S)"
+          docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
       # Step 7: Deploy to EC2
       - name: SSH into EC2 and deploy the app
@@ -69,14 +65,13 @@ jobs:
             # Add ec2-user to the docker group
             sudo usermod -aG docker ec2-user
 
-            # Pull the Docker image using the commit hash or timestamp
-            docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:${GITHUB_SHA}"
-            docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:$(date +%Y%m%d%H%M%S)"
+            # Pull the Docker image from Docker Hub
+            docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
             # Stop and remove any existing container
             docker stop login-app || true
             docker rm login-app || true
 
             # Run the new container
-            docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:${GITHUB_SHA}"
+            docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
           EOF
