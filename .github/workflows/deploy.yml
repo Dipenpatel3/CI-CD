@@ -50,8 +50,12 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > cicd.pem
           chmod 600 cicd.pem
-          chmod 400 cicd.pem
-          ssh -i cicd.pem -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
+
+          # Start SSH agent and load the private key
+          eval "$(ssh-agent -s)"
+          ssh-add cicd.pem
+
+          ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
             # Update and install Docker
             sudo yum update -y
             sudo amazon-linux-extras install docker
