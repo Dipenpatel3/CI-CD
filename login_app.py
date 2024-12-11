@@ -3,7 +3,6 @@ import streamlit as st
 def login():
     """Handles the user login process."""
     st.session_state.logged_in = st.session_state.get('logged_in', False)
-    st.head("Wellcome to the User Login Page")
     if not st.session_state.logged_in:
         username = st.text_input('Enter the Username:')
         password = st.text_input('Enter the password:', type='password')
