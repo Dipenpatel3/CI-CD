@@ -61,7 +61,7 @@ jobs:
           ssh-add cicd.pem
 
           ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
-            # Install Docker on Amazon Linux 2023
+            # Install Docker on Amazon Linux 2023 (if not already installed)
             sudo dnf install -y docker
             sudo systemctl enable docker
             sudo systemctl start docker
@@ -69,15 +69,17 @@ jobs:
             # Add ec2-user to the docker group
             sudo usermod -aG docker ec2-user
 
-            # Pull the Docker image from Docker Hub
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            echo "Pulling Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
-            docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
+            # Define the timestamp in EC2 as well
+            TIMESTAMP=\$(date +%Y%m%d%H%M%S)
+            echo "Pulling Docker image: \$TIMESTAMP"
+
+            # Pull the Docker image from Docker Hub using the timestamp
+            docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:\$TIMESTAMP"
 
             # Stop and remove any existing container
             docker stop login-app || true
             docker rm login-app || true
 
             # Run the new container
-            docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
+            docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:\$TIMESTAMP"
           EOF
