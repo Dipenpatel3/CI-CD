@@ -36,11 +36,15 @@ jobs:
       - name: Tag the Docker image with timestamp
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          echo "Generated timestamp: $TIMESTAMP"
           docker tag login-app:latest "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
+          echo "Docker image tagged as: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
-      # Step 6: Push Docker image to Docker Hub with timestamp
+      # Step 6: Push Docker image to Docker Hub
       - name: Push the Docker image to Docker Hub
         run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          echo "Pushing Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
           docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
       # Step 7: Deploy to EC2
