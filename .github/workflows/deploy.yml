@@ -61,15 +61,17 @@ jobs:
           ssh-add cicd.pem
 
           ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
-            # Update and install Docker
-            sudo yum update -y
-            sudo amazon-linux-extras install docker
-            sudo service docker start
+            # Install Docker on Amazon Linux 2023
+            sudo dnf install -y docker
+            sudo systemctl enable docker
+            sudo systemctl start docker
 
             # Add ec2-user to the docker group
             sudo usermod -aG docker ec2-user
 
             # Pull the Docker image from Docker Hub
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            echo "Pulling Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
             docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
             # Stop and remove any existing container
