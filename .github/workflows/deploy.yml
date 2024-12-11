@@ -35,7 +35,7 @@ jobs:
       # Step 5: Tag Docker image with timestamp
       - name: Tag the Docker image with timestamp
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          TIMESTAMP=$(date +%Y%m%d%H)  # Remove seconds to avoid mismatch
           echo "Generated timestamp: $TIMESTAMP"
           docker tag login-app:latest "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
           echo "Docker image tagged as: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
@@ -43,7 +43,7 @@ jobs:
       # Step 6: Push Docker image to Docker Hub
       - name: Push the Docker image to Docker Hub
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          TIMESTAMP=$(date +%Y%m%d%H)  # Remove seconds to avoid mismatch
           echo "Pushing Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
           docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
@@ -70,7 +70,8 @@ jobs:
             sudo usermod -aG docker ec2-user
 
             # Define the timestamp in EC2 as well
-            TIMESTAMP=\$(date +%Y%m%d%H%M%S)
+            TIMESTAMP=\$(date +%Y%m%d%H)  # Same timestamp format (without seconds)
+
             echo "Pulling Docker image: \$TIMESTAMP"
 
             # Pull the Docker image from Docker Hub using the timestamp
