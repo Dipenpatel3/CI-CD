@@ -61,7 +61,7 @@ jobs:
       #     echo "Pushing Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
       #     docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
 
-      Step 7: Deploy to EC2
+      #Step 7: Deploy to EC2
       - name: SSH into EC2 and deploy the app
         env:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
@@ -98,4 +98,3 @@ jobs:
       #       # Run the new container
       #       docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:\$TIMESTAMP"
       #     EOF
-      
