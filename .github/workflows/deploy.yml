@@ -32,4 +32,6 @@ jobs:
 
           # SSH into the EC2 instance and run deployment commands
           ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << EOF
+            # Install Docker on Ubuntu 24.04
+            docker login
           EOF
