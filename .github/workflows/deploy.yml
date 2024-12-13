@@ -29,6 +29,7 @@ jobs:
       # Deploy to EC2
       - name: SSH into EC2 and deploy the app
         run: |
+          echo "Connecting to EC2 instance at $SERVER_IP"
           ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
             # Update packages and fix broken dependencies
             sudo apt-get update
