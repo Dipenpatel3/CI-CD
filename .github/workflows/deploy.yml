@@ -1,51 +1,35 @@
-name: Deploy to EC2
+name: Streamlit Login App (Running on the local machine)
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # Set up SSH for EC2 connection
-      - name: Set up SSH keys
+      #Step 2: Deploy to EC2
+      - name: SSH into EC2 and deploy the app
         env:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.EC2_SERVER_IP }}
         run: |
+          # Save the private key to a file and set proper permissions
           echo "$PRIVATE_KEY" > cicd.pem
           chmod 600 cicd.pem
-          chmod 400 cicd.pem
-          # Start SSH agent and load the private key
+
+          # Start SSH agent and add the private key
           eval "$(ssh-agent -s)"
           ssh-add cicd.pem
 
-      # Deploy to EC2
-      - name: SSH into EC2 and deploy the app
-        run: |
-          echo "Connecting to EC2 instance at $SERVER_IP"
-          ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
-            # Update packages and fix broken dependencies
-            sudo apt-get update
-            sudo apt --fix-broken install -y
-            
-            # Install Docker (Ubuntu instructions, for Amazon Linux use dnf)
-            sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/trusted.gpg.d/docker.asc
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable"
-            sudo apt-get update
-            sudo apt-get install -y docker-ce
-            
-            # Start Docker service
-            sudo systemctl enable docker
-            sudo systemctl start docker
-            
-            # Verify Docker installation
-            docker --version
+          # SSH into the EC2 instance and run deployment commands
+          ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << EOF
           EOF
