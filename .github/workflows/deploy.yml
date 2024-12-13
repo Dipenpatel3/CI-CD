@@ -27,10 +27,24 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 4: Build Docker image
-      - name: Build the Docker image
+      # Cache Docker layers to speed up builds
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: ~/.docker
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      # Build Docker image with caching enabled
+      - name: Build Docker image
         run: |
-          docker build -t login-app . || (echo "Docker build failed!" && exit 1)
+          docker buildx build --platform linux/amd64,linux/arm64 -t login-app .
+
+      # # Step 4: Build Docker image
+      # - name: Build the Docker image
+      #   run: |
+      #     docker build -t login-app . || (echo "Docker build failed!" && exit 1)
 
       # Step 5: Tag Docker image with timestamp
       - name: Tag the Docker image with timestamp
