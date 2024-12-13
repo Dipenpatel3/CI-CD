@@ -69,7 +69,7 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > cicd.pem
           chmod 600 cicd.pem
-
+          chmod 400 cicd.pem
           # Start SSH agent and load the private key
           eval "$(ssh-agent -s)"
           ssh-add cicd.pem
