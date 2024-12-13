@@ -1,104 +1,50 @@
-name: Streamlit Login App (Running on the local machine)
+name: Deploy to EC2
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      # Step 2: Set up Docker
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-
-      # Step 3: Log in to Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Cache Docker layers to speed up builds
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: ~/.docker
-          key: ${{ runner.os }}-docker-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
-
-      # # Build Docker image with caching enabled
-      # - name: Build Docker image and push
-      #   run: |
-      #     docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/login-app:latest --push .
-
-      # # Step 4: Build Docker image
-      # - name: Build the Docker image
-      #   run: |
-      #     docker build -t login-app . || (echo "Docker build failed!" && exit 1)
-
-      # # Step 5: Tag Docker image with timestamp
-      # - name: Tag the Docker image with timestamp
-      #   run: |
-      #     TIMESTAMP=$(date +%Y%m%d%H)  # Remove seconds to avoid mismatch
-      #     echo "Generated timestamp: $TIMESTAMP"
-      #     docker tag login-app:latest "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
-      #     echo "Docker image tagged as: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
-
-      # # Step 6: Push Docker image to Docker Hub
-      # - name: Push the Docker image to Docker Hub
-      #   run: |
-      #     TIMESTAMP=$(date +%Y%m%d%H)  # Remove seconds to avoid mismatch
-      #     echo "Pushing Docker image: ${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
-      #     docker push "${{ secrets.DOCKER_USERNAME }}/login-app:$TIMESTAMP"
-
-      #Step 7: Deploy to EC2
-      - name: SSH into EC2 and deploy the app
+      # Set up SSH for EC2 connection
+      - name: Set up SSH keys
         env:
           PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.EC2_SERVER_IP }}
         run: |
-          # Save the private key to a file and set proper permissions
           echo "$PRIVATE_KEY" > cicd.pem
           chmod 600 cicd.pem
-
-          # Start SSH agent and add the private key
+          chmod 400 cicd.pem
+          # Start SSH agent and load the private key
           eval "$(ssh-agent -s)"
           ssh-add cicd.pem
 
-          # SSH into the EC2 instance and run deployment commands
-          ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << EOF
-            # Install Docker on Ubuntu 24.04
+      # Deploy to EC2
+      - name: SSH into EC2 and deploy the app
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@$SERVER_IP << EOF
+            # Update packages and fix broken dependencies
             sudo apt-get update
-            sudo apt-get install -y docker.io
+            sudo apt --fix-broken install -y
+            
+            # Install Docker (Ubuntu instructions, for Amazon Linux use dnf)
+            sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/trusted.gpg.d/docker.asc
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable"
+            sudo apt-get update
+            sudo apt-get install -y docker-ce
+            
+            # Start Docker service
             sudo systemctl enable docker
             sudo systemctl start docker
+            
+            # Verify Docker installation
+            docker --version
           EOF
-
-      #       # Add ec2-user to the docker group
-      #       sudo usermod -aG docker ec2-user
-
-      #       # Define the timestamp in EC2 as well
-      #       TIMESTAMP=\$(date +%Y%m%d%H)  # Same timestamp format (without seconds)
-
-      #       echo "Pulling Docker image: \$TIMESTAMP"
-
-      #       # Pull the Docker image from Docker Hub using the timestamp
-      #       docker pull "${{ secrets.DOCKER_USERNAME }}/login-app:\$TIMESTAMP"
-
-      #       # Stop and remove any existing container
-      #       docker stop login-app || true
-      #       docker rm login-app || true
-
-      #       # Run the new container
-      #       docker run -d --name login-app -p 8501:8501 "${{ secrets.DOCKER_USERNAME }}/login-app:\$TIMESTAMP"
-      #     EOF
